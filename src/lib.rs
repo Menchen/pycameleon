@@ -1,6 +1,8 @@
+use std::sync::Arc;
 
-use cameleon::{payload::PayloadReceiver, CameraInfo};
-use pyo3::{exceptions::PyValueError, prelude::*, types::{PyBytes, PyNone, PyDict}};
+use cameleon::{genapi::{DefaultGenApiCtxt, Node, ParamsCtxt}, payload::PayloadReceiver, u3v::ControlHandle, CameraInfo};
+use pyo3::{exceptions::PyValueError, prelude::*, types::{PyDict, PyNone}};
+use numpy::PyArray;
 
 // use cameleon::u3v::enumerate_cameras;
 
@@ -12,17 +14,18 @@ pub struct PyPayloadReceiver(pub PayloadReceiver);
 
 pub struct PyCameraInfo<'a>(pub &'a CameraInfo);
 
-#[pyfunction]
-fn enumerate_cameras() -> PyResult<Vec<PyCameleonCamera>>{
-    let cameras = cameleon::u3v::enumerate_cameras().unwrap();
+// enum PyNodeType{
+//     Float,
+//     String,
+//     Integer,
+// }
 
-    if cameras.is_empty(){
-        return Err(PyValueError::new_err("No camera found!"));
-    }
+// #[pyclass]
+// pub struct PyNode{
+//     node: Node,
+//     node_type: PyNodeType,
+// }
 
-    let pycameras = cameras.into_iter().map(|c| {PyCameleonCamera(c)}).collect();
-    Ok(pycameras)
-}
 
 impl IntoPy<PyObject> for PyCameraInfo<'_>{
     fn into_py(self, py: Python<'_>) -> PyObject {
@@ -42,8 +45,28 @@ impl PyCameleonCamera{
     }
     pub fn load_context(&mut self) -> PyResult<String>{
         Ok(self.0.load_context().unwrap())
-
     }
+
+    // pub fn node(&mut self,node_name : &str) -> PyResult<PyNode>{
+    //     let params_ctxt = self.0.params_ctxt().unwrap();
+    //     let node = params_ctxt.node(node_name).unwrap();
+    //     Ok(PyNode(node))
+    // }
+
+    // pub fn as_float(&mut self, node: &PyNode) -> PyResult<PyNode>{
+    //     let params_ctxt = self.0.params_ctxt().unwrap();
+    //     let float_node = node.0.as_float(&params_ctxt).unwrap();
+    // }
+
+    // pub fn params_is_readable(&mut self,node_name : &str) -> PyResult<bool>{
+    //     let mut params_ctxt = self.0.params_ctxt().unwrap();
+    //     let node = params_ctxt.node(node_name).unwrap();
+    //     Ok(true)
+    // }
+
+    // pub fn params_ctxt(&mut self) -> PyResult<PyParamsCtxt>{ 
+    //     OK(PyParamsCtxt(self.0.params_ctxt().unwrap()))
+    // }
 
     pub fn info(&mut self) -> PyResult<PyCameraInfo>
     {
@@ -69,12 +92,16 @@ impl PyCameleonCamera{
         };
 
         let result = match payload.image() {
-            Some(img) => Ok(PyBytes::new(py, img).to_object(py)),
-            None => Ok(PyNone::get(py).to_object(py))
+            Some(img) => {
+                let info = payload.image_info().unwrap();
+                let ndarray = PyArray::from_slice(py, img);
+                ndarray.reshape([info.height,info.width]).unwrap().to_object(py)
+            },
+            None => PyNone::get(py).to_object(py)
         };
 
         payload_rx.0.send_back(payload);
-        result
+        Ok(result)
     }
 
     pub fn __str__(&self) -> PyResult<String>{
@@ -89,7 +116,13 @@ impl PyCameleonCamera{
 
 #[pymodule]
 fn pycameleon(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_wrapped(wrap_pyfunction!(enumerate_cameras))?;
+    #[pyfn(m)]
+    fn enumerate_cameras() -> PyResult<Vec<PyCameleonCamera>>{
+        let cameras = cameleon::u3v::enumerate_cameras().unwrap();
+
+        let pycameras = cameras.into_iter().map(|c| {PyCameleonCamera(c)}).collect();
+        Ok(pycameras)
+    }
     Ok(())
 }
 

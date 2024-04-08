@@ -14,3 +14,4 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.20.2", features = ["extension-module"]}
 cameleon = { version = "0.1.12", features = ["libusb"]}
+numpy = "0.20"
