@@ -227,6 +227,14 @@ impl PyCameleonCamera{
         Ok(format!("{:?}",self.0.info()))
     }
 
+    pub fn __enter__(&mut self) -> PyResult<()>{
+        Ok(self.0.open().unwrap())
+    }
+
+    pub fn __exit__(&mut self) -> PyResult<()>{
+        Ok(self.0.close().unwrap())
+    }
+
 }
 
 #[pymodule]
