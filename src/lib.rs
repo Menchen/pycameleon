@@ -46,6 +46,89 @@ impl PyCameleonCamera{
     pub fn load_context(&mut self) -> PyResult<String>{
         Ok(self.0.load_context().unwrap())
     }
+    pub fn read_string(&mut self, node_name : &str) -> PyResult<Option<String>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_string(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.value(&mut params_ctxt).unwrap()));
+        }
+        Ok(None)
+    }
+
+    pub fn read_integer(&mut self, node_name : &str) -> PyResult<Option<i64>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_integer(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.value(&mut params_ctxt).unwrap()));
+        }
+        Ok(None)
+    }
+
+    pub fn read_boolean(&mut self, node_name : &str) -> PyResult<Option<bool>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_boolean(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.value(&mut params_ctxt).unwrap()));
+        }
+        Ok(None)
+    }
+
+    pub fn read_float(&mut self, node_name : &str) -> PyResult<Option<f64>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_float(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.value(&mut params_ctxt).unwrap()));
+        }
+        Ok(None)
+    }
+
+    pub fn write_string(&mut self, node_name : &str, value : String) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_string(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_value(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
+
+
+    pub fn write_integer(&mut self, node_name : &str, value : i64) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_integer(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_value(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
+
+
+
+    pub fn write_boolean(&mut self, node_name : &str, value : bool) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_boolean(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_value(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
+
+
+    pub fn write_float(&mut self, node_name : &str, value : f64) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node = params_ctxt.node(node_name).unwrap().as_float(&params_ctxt).unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_value(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
+
+
+
+
 
     // pub fn node(&mut self,node_name : &str) -> PyResult<PyNode>{
     //     let params_ctxt = self.0.params_ctxt().unwrap();
