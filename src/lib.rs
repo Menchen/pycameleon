@@ -98,6 +98,32 @@ impl PyCameleonCamera{
         Err(PyValueError::new_err(format!("Node {} is not readable",node_name)))
     }
 
+    pub fn read_enum_as_int(&mut self, node_name : &str) -> PyResult<Option<i64>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node_option = params_ctxt.node(node_name).unwrap().as_enumeration(&params_ctxt);
+        if node_option.is_none() {
+            return Err(PyValueError::new_err(format!("Node {} cannot be casted as enumeration",node_name)))
+        }
+        let node = node_option.unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.current_entry(&mut params_ctxt).unwrap().value(& params_ctxt)));
+        }
+        Err(PyValueError::new_err(format!("Node {} is not readable",node_name)))
+    }
+
+    pub fn read_enum_as_str(&mut self, node_name : &str) -> PyResult<Option<String>>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node_option = params_ctxt.node(node_name).unwrap().as_enumeration(&params_ctxt);
+        if node_option.is_none() {
+            return Err(PyValueError::new_err(format!("Node {} cannot be casted as enumeration",node_name)))
+        }
+        let node = node_option.unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            return Ok(Some(node.current_entry(&mut params_ctxt).unwrap().symbolic(&params_ctxt).to_owned()));
+        }
+        Err(PyValueError::new_err(format!("Node {} is not readable",node_name)))
+    }
+
     pub fn write_string(&mut self, node_name : &str, value : String) -> PyResult<()>{
         let mut params_ctxt = self.0.params_ctxt().unwrap();
         let node_option = params_ctxt.node(node_name).unwrap().as_string(&params_ctxt);
@@ -158,7 +184,33 @@ impl PyCameleonCamera{
         Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
     }
 
+    pub fn write_enum_as_int(&mut self, node_name : &str, value : i64) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node_option = params_ctxt.node(node_name).unwrap().as_enumeration(&params_ctxt);
+        if node_option.is_none() {
+            return Err(PyValueError::new_err(format!("Node {} cannot be casted as enum",node_name)))
+        }
+        let node = node_option.unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_entry_by_value(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
 
+    pub fn write_enum_as_str(&mut self, node_name : &str, value : &str) -> PyResult<()>{
+        let mut params_ctxt = self.0.params_ctxt().unwrap();
+        let node_option = params_ctxt.node(node_name).unwrap().as_enumeration(&params_ctxt);
+        if node_option.is_none() {
+            return Err(PyValueError::new_err(format!("Node {} cannot be casted as enum",node_name)))
+        }
+        let node = node_option.unwrap();
+        if node.is_readable(&mut params_ctxt).unwrap() {
+            node.set_entry_by_symbolic(&mut params_ctxt, value).unwrap();
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!("Node {} is not writable",node_name)))
+    }
 
 
 
