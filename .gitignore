@@ -317,3 +317,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/rust,linux,windows,git,macos,visualstudiocode,vim,python
+# pixi environments
+.pixi/*
+!.pixi/config.toml
