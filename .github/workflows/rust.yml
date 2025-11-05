@@ -44,6 +44,8 @@ jobs:
         with:
           python-version: 3.x
       - name: Build wheels
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
@@ -77,6 +79,8 @@ jobs:
         with:
           python-version: 3.x
       - name: Build wheels
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
@@ -112,6 +116,8 @@ jobs:
           python-version: 3.x
           architecture: ${{ matrix.platform.target }}
       - name: Build wheels
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
@@ -140,6 +146,8 @@ jobs:
         with:
           python-version: 3.x
       - name: Build wheels
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
