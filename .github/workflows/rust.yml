@@ -32,10 +32,10 @@ jobs:
             target: aarch64
           - runner: ubuntu-22.04
             target: armv7
-          # - runner: ubuntu-22.04
-          #   target: s390x
-          # - runner: ubuntu-22.04
-          #   target: ppc64le
+          - runner: ubuntu-22.04
+            target: s390x
+          - runner: ubuntu-22.04
+            target: ppc64le
     steps:
       - uses: actions/checkout@v4
       - name: Install libusb dependency
@@ -53,9 +53,6 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: manylinux_2_28
-          before-script-linux: |
-            (apt-get update && apt-get install -y libusb-1.0-0-dev) || true
-            (yum install -y libusb1-devel) || true
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -91,9 +88,6 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: musllinux_1_2
-          before-script-linux: |
-            (apt-get update && apt-get install -y libusb-1.0-0-dev) || true
-            (yum install -y libusb1-devel) || true
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
