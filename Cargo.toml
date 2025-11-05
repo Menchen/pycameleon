@@ -7,11 +7,9 @@ edition = "2021"
 
 [lib]
 name = "pycameleon"
-
-
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20.2", features = ["extension-module"]}
-cameleon = { version = "0.1.12", features = ["libusb"]}
-numpy = "0.20"
+pyo3 = { version = "0.27.1", features = ["abi3-py39", "extension-module"] }
+cameleon = { version = "0.1.12", features = ["libusb"] }
+numpy = "0.27"
