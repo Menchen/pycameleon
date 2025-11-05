@@ -49,7 +49,7 @@ jobs:
           CARGO_FEATURE_LIBUSB1_SYS_VENDORED: "1"
           LIBUSB_STATIC: "1"
           LIBUSB_NO_PKG_CONFIG: "1"
-    CFLAGS: "-std=gnu11"
+          CFLAGS: "-std=gnu11"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
