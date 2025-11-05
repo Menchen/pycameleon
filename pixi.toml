@@ -1,7 +1,7 @@
 [workspace]
 channels = ["conda-forge"]
 name = "pycameleon"
-platforms = ["osx-arm64"]
+platforms = ["osx-arm64", "linux-64"]
 version = "0.1.0"
 
 [tasks]
@@ -16,7 +16,9 @@ pyqt = ">=5.15.11,<6"
 rerun-sdk = ">=0.24.1,<0.25"
 marimo = ">=0.17.0,<0.18"
 ruff = ">=0.14.2,<0.15"
+zig = ">=0.15.1,<0.16"
 
 [pypi-dependencies]
 opencv-python = ">=4.12.0.88, <5"
 rerun-sdk = { version = "*", extras = ["notebook"] }
+maturin = { version = "*", extras = ["zig"] }
