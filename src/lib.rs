@@ -1,5 +1,5 @@
 use cameleon::{
-    genapi::{DefaultGenApiCtxt, FromXml, GenApiCtxt},
+    genapi::{DefaultGenApiCtxt, FromXml},
     payload::PayloadReceiver,
     CameraInfo,
 };
