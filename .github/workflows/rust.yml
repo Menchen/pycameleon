@@ -47,15 +47,12 @@ jobs:
         env:
           PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
           CARGO_FEATURE_LIBUSB1_SYS_VENDORED: "1"
-          LIBUSB_STATIC: "1"
-          LIBUSB_NO_PKG_CONFIG: "1"
-          CFLAGS: "-std=gnu11 -DHAVE_STDATOMIC_H=0"
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
-          manylinux: auto
+          manylinux: manylinux_2_28
           before-script-linux: |
             (apt-get update && apt-get install -y libusb-1.0-0-dev) || true
             (yum install -y libusb1-devel) || true
