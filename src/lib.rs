@@ -4,10 +4,12 @@ use cameleon::{
     CameraInfo,
 };
 use numpy::PyArray;
+use numpy::PyArrayMethods;
 use pyo3::{
     exceptions::PyValueError,
     prelude::*,
     types::{PyDict, PyNone},
+    IntoPyObjectExt,
 };
 
 // use cameleon::u3v::enumerate_cameras;
@@ -34,15 +36,26 @@ pub struct PyCameraInfo<'a>(pub &'a CameraInfo);
 //     node_type: PyNodeType,
 // }
 
-impl IntoPy<PyObject> for PyCameraInfo<'_> {
-    fn into_py(self, py: Python<'_>) -> PyObject {
+impl<'py> IntoPyObject<'py> for PyCameraInfo<'_> {
+    type Target = PyAny;
+    type Output = Bound<'py, Self::Target>;
+    type Error = PyErr;
+    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
         let dict = PyDict::new(py);
         dict.set_item("model_name", &self.0.model_name).unwrap();
         dict.set_item("vendor_name", &self.0.vendor_name).unwrap();
         dict.set_item("serial_number", &self.0.serial_number)
             .unwrap();
-        dict.into_py(py)
+        dict.into_bound_py_any(py)
     }
+    // fn into(self, py: Python<'_>) -> PyObject {
+    //     let dict = PyDict::new(py);
+    //     dict.set_item("model_name", &self.0.model_name).unwrap();
+    //     dict.set_item("vendor_name", &self.0.vendor_name).unwrap();
+    //     dict.set_item("serial_number", &self.0.serial_number)
+    //         .unwrap();
+    //     dict.into_py_any(py)
+    // }
 }
 
 #[pymethods]
@@ -422,7 +435,7 @@ impl PyCameleonCamera {
         &mut self,
         py: Python,
         payload_rx: &mut PyPayloadReceiver,
-    ) -> PyResult<PyObject> {
+    ) -> PyResult<Py<PyAny>> {
         let payload = match payload_rx.0.recv_blocking() {
             Ok(payload) => payload,
             Err(e) => {
@@ -437,13 +450,13 @@ impl PyCameleonCamera {
                 ndarray
                     .reshape([info.height, info.width])
                     .unwrap()
-                    .to_object(py)
+                    .into_py_any(py)
             }
-            None => PyNone::get(py).to_object(py),
+            None => PyNone::get(py).into_py_any(py),
         };
 
         payload_rx.0.send_back(payload);
-        Ok(result)
+        result
     }
 
     pub fn __str__(&self) -> PyResult<String> {
@@ -462,15 +475,15 @@ impl PyCameleonCamera {
         Ok(self.0.close().unwrap())
     }
 }
+#[pyfunction]
+fn enumerate_cameras() -> PyResult<Vec<PyCameleonCamera>> {
+    let cameras = cameleon::u3v::enumerate_cameras().unwrap();
+
+    let pycameras = cameras.into_iter().map(|c| PyCameleonCamera(c)).collect();
+    Ok(pycameras)
+}
 
 #[pymodule]
-fn pycameleon(_py: Python, m: &PyModule) -> PyResult<()> {
-    #[pyfn(m)]
-    fn enumerate_cameras() -> PyResult<Vec<PyCameleonCamera>> {
-        let cameras = cameleon::u3v::enumerate_cameras().unwrap();
-
-        let pycameras = cameras.into_iter().map(|c| PyCameleonCamera(c)).collect();
-        Ok(pycameras)
-    }
-    Ok(())
+fn pycameleon(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(enumerate_cameras, m)?)
 }
