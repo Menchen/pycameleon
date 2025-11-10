@@ -15,7 +15,7 @@ Your contributions—whether code, documentation, or ideas—are highly apprecia
 
 ### PyPI (Recommended)
 
-This package is available in [PiPI](https://pypi.org/project/pycameleon).
+This package is available in [PyPI](https://pypi.org/project/pycameleon).
 
 ```bash
 pip install pycameleon
