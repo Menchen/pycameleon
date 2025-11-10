@@ -9,7 +9,7 @@ This project is currently under active development. Features are being added, an
 
 We welcome **new contributors**! If you want to help, here’s how you can get involved:
 
-Your contributions—whether code, documentation, or ideas—are highly appreciated!
+Your contributions, whether code, documentation, or ideas are highly appreciated!
 
 ## Instalation
 
