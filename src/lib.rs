@@ -20,18 +20,6 @@ pub struct PyPayloadReceiver(pub PayloadReceiver);
 
 pub struct PyCameraInfo<'a>(pub &'a CameraInfo);
 
-// enum PyNodeType{
-//     Float,
-//     String,
-//     Integer,
-// }
-
-// #[pyclass]
-// pub struct PyNode{
-//     node: Node,
-//     node_type: PyNodeType,
-// }
-
 impl<'py> IntoPyObject<'py> for PyCameraInfo<'_> {
     type Target = PyAny;
     type Output = Bound<'py, Self::Target>;
@@ -44,14 +32,6 @@ impl<'py> IntoPyObject<'py> for PyCameraInfo<'_> {
             .unwrap();
         dict.into_bound_py_any(py)
     }
-    // fn into(self, py: Python<'_>) -> PyObject {
-    //     let dict = PyDict::new(py);
-    //     dict.set_item("model_name", &self.0.model_name).unwrap();
-    //     dict.set_item("vendor_name", &self.0.vendor_name).unwrap();
-    //     dict.set_item("serial_number", &self.0.serial_number)
-    //         .unwrap();
-    //     dict.into_py_any(py)
-    // }
 }
 
 #[pymethods]
@@ -330,28 +310,7 @@ impl PyCameleonCamera {
         )))
     }
 
-    // pub fn node(&mut self,node_name : &str) -> PyResult<PyNode>{
-    //     let params_ctxt = self.0.params_ctxt().unwrap();
-    //     let node = params_ctxt.node(node_name).unwrap();
-    //     Ok(PyNode(node))
-    // }
-
-    // pub fn as_float(&mut self, node: &PyNode) -> PyResult<PyNode>{
-    //     let params_ctxt = self.0.params_ctxt().unwrap();
-    //     let float_node = node.0.as_float(&params_ctxt).unwrap();
-    // }
-
-    // pub fn params_is_readable(&mut self,node_name : &str) -> PyResult<bool>{
-    //     let mut params_ctxt = self.0.params_ctxt().unwrap();
-    //     let node = params_ctxt.node(node_name).unwrap();
-    //     Ok(true)
-    // }
-
-    // pub fn params_ctxt(&mut self) -> PyResult<PyParamsCtxt>{
-    //     OK(PyParamsCtxt(self.0.params_ctxt().unwrap()))
-    // }
-
-    pub fn info(&mut self) -> PyResult<PyCameraInfo> {
+    pub fn info<'a>(&'a mut self) -> PyResult<PyCameraInfo<'a>> {
         Ok(PyCameraInfo(self.0.info()))
     }
 
@@ -402,18 +361,20 @@ impl PyCameleonCamera {
     }
 
     pub fn __enter__(&mut self) -> PyResult<()> {
-        Ok(self.0.open().unwrap())
+        self.0.open().unwrap();
+        Ok(())
     }
 
     pub fn __exit__(&mut self) -> PyResult<()> {
-        Ok(self.0.close().unwrap())
+        self.0.close().unwrap();
+        Ok(())
     }
 }
 #[pyfunction]
 fn enumerate_cameras() -> PyResult<Vec<PyCameleonCamera>> {
     let cameras = cameleon::u3v::enumerate_cameras().unwrap();
 
-    let pycameras = cameras.into_iter().map(|c| PyCameleonCamera(c)).collect();
+    let pycameras = cameras.into_iter().map(PyCameleonCamera).collect();
     Ok(pycameras)
 }
 
