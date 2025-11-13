@@ -1,6 +1,6 @@
 [package]
 name = "pycameleon"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -10,6 +10,7 @@ name = "pycameleon"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.27.1", features = ["abi3-py39", "extension-module"] }
+pyo3 = { version = "0.27.1", features = ["abi3-py39", "extension-module", "multiple-pymethods"] }
 cameleon = { version = "0.1.12", features = ["libusb"] }
 numpy = "0.27"
+thiserror = "2.0.17"
