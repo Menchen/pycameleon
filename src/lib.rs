@@ -241,7 +241,7 @@ impl PyCameleonCamera {
 
     pub fn close(&mut self) -> PycameleonResult<()> {
         let cam = &mut self.0;
-        cam.close().unwrap();
+        cam.close()?;
         Ok(())
     }
 
