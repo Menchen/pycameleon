@@ -221,30 +221,40 @@ impl_read_methods!(
     ]
 );
 
+/// Wrapper class for Cameleon Camera
 #[pymethods]
 impl PyCameleonCamera {
+    /// Open the camera, must be the first method called before any other operation
     pub fn open(&mut self) -> PycameleonResult<()> {
         self.0.open()?;
         Ok(())
     }
+
+    /// Load the GenApi XML context from the camera, should only be called the first time to
+    /// extract the GenApi XML.
     pub fn load_context(&mut self) -> PycameleonResult<String> {
         Ok(self.0.load_context()?)
     }
 
+    /// Return a dict containing basic information about the camera.
     pub fn info<'a>(&'a mut self) -> PycameleonResult<PyCameraInfo<'a>> {
         Ok(PyCameraInfo(self.0.info()))
     }
 
+    /// Start streaming with a given channel capacity, returns a PayloadReceiver that can be
+    /// reused.
     pub fn start_streaming(&mut self, cap: usize) -> PycameleonResult<PyPayloadReceiver> {
         Ok(PyPayloadReceiver(self.0.start_streaming(cap)?))
     }
 
+    /// Close the device
     pub fn close(&mut self) -> PycameleonResult<()> {
         let cam = &mut self.0;
         cam.close()?;
         Ok(())
     }
 
+    /// Execute a command node
     pub fn execute(&mut self, node_name: &str) -> PycameleonResult<()> {
         let mut params_ctxt = self.0.params_ctxt()?;
         let node_option = params_ctxt
@@ -265,6 +275,7 @@ impl PyCameleonCamera {
         Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
     }
 
+    /// Check if a command node is done
     pub fn isdone_command(&mut self, node_name: &str) -> PycameleonResult<bool> {
         let mut params_ctxt = self.0.params_ctxt()?;
         let node_option = params_ctxt
@@ -285,6 +296,8 @@ impl PyCameleonCamera {
         Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
     }
 
+    /// Receive an image with blocking call, need an channel payload from `start_streaming`
+    /// return an 2D numpy byte array with dimension returned by the camera
     pub fn receive(
         &mut self,
         py: Python,
@@ -334,6 +347,7 @@ impl PyCameleonCamera {
     }
 }
 
+/// Return a list of handler for available USB 3 Vision cameras
 #[pyfunction]
 fn enumerate_cameras() -> PycameleonResult<Vec<PyCameleonCamera>> {
     let cameras = cameleon::u3v::enumerate_cameras()?;
@@ -342,6 +356,7 @@ fn enumerate_cameras() -> PycameleonResult<Vec<PyCameleonCamera>> {
     Ok(pycameras)
 }
 
+/// An python wrapper for cameleon, an generic USB3 Vision camera library
 #[pymodule]
 fn pycameleon(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(enumerate_cameras, m)?)
