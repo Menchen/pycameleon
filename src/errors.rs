@@ -1,4 +1,4 @@
-use cameleon::{genapi::GenApiError, CameleonError};
+use cameleon::{genapi::GenApiError, CameleonError, ControlError};
 use pyo3::{exceptions::*, PyErr};
 use thiserror::Error;
 
@@ -8,6 +8,8 @@ pub type PycameleonResult<T> = Result<T, PycameleonError>;
 pub enum PycameleonError {
     #[error(transparent)]
     Cameleon(#[from] CameleonError),
+    #[error(transparent)]
+    Control(#[from] ControlError),
 
     #[error(transparent)]
     Py(#[from] PyErr),

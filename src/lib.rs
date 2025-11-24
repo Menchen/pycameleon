@@ -1,6 +1,7 @@
 mod errors;
 
-use cameleon::genapi::{DefaultGenApiCtxt, GenApiError, Node, ParamsCtxt};
+use cameleon::genapi::{DefaultGenApiCtxt, FromXml, GenApiCtxt, GenApiError, Node, ParamsCtxt};
+use cameleon::payload::ImageInfo;
 use cameleon::u3v::ControlHandle;
 use cameleon::{payload::PayloadReceiver, CameraInfo};
 use errors::PycameleonResult;
@@ -129,6 +130,7 @@ macro_rules! impl_read_methods {
         $cls:ty,
         [
             $(
+                $(#[$meta:meta])*
                 ($fn_name:ident, $type:ty, $as_fn:ident $(, $value_closure:expr)?)
             ),+ $(,)?
         ]
@@ -136,6 +138,7 @@ macro_rules! impl_read_methods {
         #[pymethods]
         impl $cls {
             $(
+                $(#[$meta])*
                 pub fn $fn_name(&mut self, node_name: &str) -> PycameleonResult<$type> {
                     read_node(
                         self,
@@ -161,7 +164,7 @@ macro_rules! impl_write_methods {
         $cls:ty,
         [
             $(
-                // Optional custom setter closure
+                $(#[$meta:meta])*
                 ($fn_name:ident, $type:ty, $as_fn:ident $(, $setter_closure:expr)?)
             ),+ $(,)?
         ]
@@ -169,6 +172,7 @@ macro_rules! impl_write_methods {
         #[pymethods]
         impl $cls {
             $(
+                $(#[$meta])*
                 pub fn $fn_name(&mut self, node_name: &str, value: $type) -> PycameleonResult<()> {
                     write_node(
                         self,
@@ -192,13 +196,19 @@ macro_rules! impl_write_methods {
 impl_write_methods!(
     PyCameleonCamera,
     [
+        /// Write a string value to a GenApi node
         (write_string, String, as_string),
+        /// Write an integer value to a GenApi node
         (write_integer, i64, as_integer),
+        /// Write a float value to a GenApi node
         (write_float, f64, as_float),
+        /// Write a boolean value to a GenApi node
         (write_bool, bool, as_boolean),
+        /// Write an enumeration value to a GenApi node by integer value
         (write_enum_as_int, i64, as_enumeration, |n, _ctxt, v| {
             n.set_entry_by_value(_ctxt, v)
         }),
+        /// Write an enumeration value to a GenApi node by string symbolic name
         (write_enum_as_str, &str, as_enumeration, |n, _ctxt, v| {
             n.set_entry_by_symbolic(_ctxt, v)
         }),
@@ -208,13 +218,19 @@ impl_write_methods!(
 impl_read_methods!(
     PyCameleonCamera,
     [
+        /// Read a string value from a GenApi node
         (read_string, String, as_string),
+        /// Read an integer value from a GenApi node
         (read_integer, i64, as_integer),
+        /// Read a float value from a GenApi node
         (read_float, f64, as_float),
+        /// Read a boolean value from a GenApi node
         (read_bool, bool, as_boolean),
+        /// Read an enumeration value from a GenApi node by integer value
         (read_enum_as_int, i64, as_enumeration, |n, _ctxt| {
             Ok(n.current_entry(_ctxt)?.value(_ctxt))
         }),
+        /// Read an enumeration value from a GenApi node by string symbolic name
         (read_enum_as_str, String, as_enumeration, |n, _ctxt| {
             Ok(n.current_entry(_ctxt)?.symbolic(_ctxt).to_owned())
         }),
@@ -224,16 +240,28 @@ impl_read_methods!(
 /// Wrapper class for Cameleon Camera
 #[pymethods]
 impl PyCameleonCamera {
-    /// Open the camera, must be the first method called before any other operation
+    /// Open the camera at USB level, must be the first method called before any other operation
     pub fn open(&mut self) -> PycameleonResult<()> {
         self.0.open()?;
         Ok(())
     }
 
-    /// Load the GenApi XML context from the camera, should only be called the first time to
-    /// extract the GenApi XML.
-    pub fn load_context(&mut self) -> PycameleonResult<String> {
+    /// Load the GenApi context from the camera, should only be called the first time to
+    /// extract and return the GenApi context as XML.
+    /// This method CAN fail if the camera is busy or not responding, or already initialized.
+    /// See `load_context_from_xml` as an alternative.
+    pub fn load_context_from_camera(&mut self) -> PycameleonResult<String> {
         Ok(self.0.load_context()?)
+    }
+
+    /// Load the GenApi context from XML string previously saved.
+    /// This is recommended over `load_context_from_camera` to speed up the initialization time and
+    /// safer initialization.
+    pub fn load_context_from_xml(&mut self, gen_api_context: String) -> PycameleonResult<()> {
+        let ctxt = DefaultGenApiCtxt::from_xml(&gen_api_context)?;
+        self.0.ctxt = Some(ctxt);
+        // self.0 = self.0.set_context(ctxt); // We don't want to consume self
+        Ok(())
     }
 
     /// Return a dict containing basic information about the camera.
@@ -243,11 +271,19 @@ impl PyCameleonCamera {
 
     /// Start streaming with a given channel capacity, returns a PayloadReceiver that can be
     /// reused.
+    /// The GenApi context must be loaded and the camera opened before calling this method.
     pub fn start_streaming(&mut self, cap: usize) -> PycameleonResult<PyPayloadReceiver> {
         Ok(PyPayloadReceiver(self.0.start_streaming(cap)?))
     }
 
-    /// Close the device
+    /// Stop streaming invalidading the receiver returned by `start_streaming`
+    /// This method is automatically called when `close` is called.
+    pub fn stop_streaming(&mut self) -> PycameleonResult<()> {
+        self.0.stop_streaming()?;
+        Ok(())
+    }
+
+    /// Close the USB device, automatically stops streaming if needed.
     pub fn close(&mut self) -> PycameleonResult<()> {
         let cam = &mut self.0;
         cam.close()?;
@@ -276,7 +312,7 @@ impl PyCameleonCamera {
     }
 
     /// Check if a command node is done
-    pub fn isdone_command(&mut self, node_name: &str) -> PycameleonResult<bool> {
+    pub fn is_command_done(&mut self, node_name: &str) -> PycameleonResult<bool> {
         let mut params_ctxt = self.0.params_ctxt()?;
         let node_option = params_ctxt
             .node(node_name)
@@ -351,7 +387,6 @@ impl PyCameleonCamera {
 #[pyfunction]
 fn enumerate_cameras() -> PycameleonResult<Vec<PyCameleonCamera>> {
     let cameras = cameleon::u3v::enumerate_cameras()?;
-
     let pycameras = cameras.into_iter().map(PyCameleonCamera).collect();
     Ok(pycameras)
 }
@@ -359,5 +394,6 @@ fn enumerate_cameras() -> PycameleonResult<Vec<PyCameleonCamera>> {
 /// An python wrapper for cameleon, an generic USB3 Vision camera library
 #[pymodule]
 fn pycameleon(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<PyCameleonCamera>()?;
     m.add_function(wrap_pyfunction!(enumerate_cameras, m)?)
 }

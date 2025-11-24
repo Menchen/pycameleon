@@ -13,7 +13,9 @@ class PyCameleonCamera:
     pass
     def open(self) -> None:
         pass
-    def load_context(self) -> str:
+    def load_context_from_camera(self) -> str:
+        pass
+    def load_context_from_xml(self, gen_api_context: str) -> None:
         pass
     def info(self) -> PyCameraInfo:
         pass
@@ -23,7 +25,7 @@ class PyCameleonCamera:
         pass
     def execute(self, node_name: str) -> None:
         pass
-    def isdone_command(self, node_name: str) -> bool:
+    def is_command_done(self, node_name: str) -> bool:
         pass
 
     # TODO Narrow the return type
