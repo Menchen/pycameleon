@@ -1,7 +1,6 @@
 mod errors;
 
-use cameleon::genapi::{DefaultGenApiCtxt, FromXml, GenApiCtxt, GenApiError, Node, ParamsCtxt};
-use cameleon::payload::ImageInfo;
+use cameleon::genapi::{DefaultGenApiCtxt, FromXml, GenApiError, Node, ParamsCtxt};
 use cameleon::u3v::ControlHandle;
 use cameleon::{payload::PayloadReceiver, CameraInfo};
 use errors::PycameleonResult;
