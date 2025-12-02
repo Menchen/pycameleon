@@ -1,6 +1,7 @@
 mod errors;
 
 use cameleon::genapi::{DefaultGenApiCtxt, FromXml, GenApiError, Node, ParamsCtxt};
+use cameleon::payload::ImageInfo;
 use cameleon::u3v::ControlHandle;
 use cameleon::{payload::PayloadReceiver, CameraInfo};
 use errors::PycameleonResult;
@@ -15,14 +16,42 @@ use pyo3::{
 
 // use cameleon::u3v::enumerate_cameras;
 
+/// Wrapper class for Cameleon Camera
 #[pyclass]
 pub struct PyCameleonCamera(
     pub cameleon::Camera<cameleon::u3v::ControlHandle, cameleon::u3v::StreamHandle>,
 );
 
+/// Wrapper class for PayloadReceiver, used for receiving and saving stream from camera.
 #[pyclass]
 pub struct PyPayloadReceiver(pub PayloadReceiver);
 
+/// Class containing image information like width, height, pixel format.
+#[pyclass]
+pub struct PyImageInfo(pub ImageInfo);
+
+#[pymethods]
+impl PyImageInfo {
+    /// Image width in pixels
+    #[getter]
+    pub fn width(&self) -> usize {
+        self.0.width
+    }
+
+    /// Image height in pixels
+    #[getter]
+    pub fn height(&self) -> usize {
+        self.0.height
+    }
+
+    #[getter]
+    /// Return pixel format as string, see https://www.emva.org/wp-content/uploads/GenICamPixelFormatValues.pdf
+    pub fn pixel_format(&self) -> String {
+        format!("{:?}", self.0.pixel_format)
+    }
+}
+
+/// Camera information like model name, vendor name, serial number.
 pub struct PyCameraInfo<'a>(pub &'a CameraInfo);
 
 impl<'py> IntoPyObject<'py> for PyCameraInfo<'_> {
@@ -331,7 +360,7 @@ impl PyCameleonCamera {
         Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
     }
 
-    /// Receive an image with blocking call, need an channel payload from `start_streaming`
+    /// Receive an Mono8 image with blocking call, need an channel payload from `start_streaming`
     /// return an 2D numpy byte array with dimension returned by the camera
     pub fn receive(
         &mut self,
@@ -358,6 +387,42 @@ impl PyCameleonCamera {
             }
             None => PyNone::get(py).into_py_any(py),
         }?;
+
+        payload_rx.0.send_back(payload);
+        Ok(result)
+    }
+
+    /// Receive an image data with blocking call, need an channel payload from `start_streaming`
+    /// return an 1D numpy array with dtype=uint8 and image info containing with dimension and pixel format returned by the camera
+    /// This method allow receiving raw image data without reshaping or type conversion.
+    pub fn receive_raw(
+        &mut self,
+        py: Python,
+        payload_rx: &mut PyPayloadReceiver,
+    ) -> PycameleonResult<(Py<PyAny>, PyImageInfo)> {
+        let payload = match payload_rx.0.recv_blocking() {
+            Ok(payload) => payload,
+            Err(_) => {
+                return Err(PyValueError::new_err("Failed to receive image").into());
+            }
+        };
+
+        let result = match payload.image() {
+            Some(img) => {
+                let info = payload
+                    .image_info()
+                    .ok_or(PyValueError::new_err("Payload image empty"))?;
+                let ndarray = PyArray::from_slice(py, img);
+                let npany = ndarray.into_py_any(py)?;
+                (npany, PyImageInfo(info.clone()))
+            }
+            None => {
+                return Err(PyValueError::new_err(
+                    "Non image payload received, may be safe to ignore",
+                )
+                .into());
+            }
+        };
 
         payload_rx.0.send_back(payload);
         Ok(result)

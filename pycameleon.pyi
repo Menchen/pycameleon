@@ -7,6 +7,31 @@ def enumerate_cameras() -> list[PyCameleonCamera]:
 class PyPayloadReceiver:
     pass
 
+class PyImageInfo:
+    ##[getter]
+    # pub fn width(&self) -> usize {
+    #    self.0.width
+    # }
+    #
+    ##[getter]
+    # pub fn height(&self) -> usize {
+    #    self.0.height
+    # }
+    #
+    ##[getter]
+    # pub fn pixel_format(&self) -> String {
+    #    format!("{:?}", self.0.pixel_format)
+    # }
+    @property
+    def width(self) -> int:
+        pass
+    @property
+    def height(self) -> int:
+        pass
+    @property
+    def pixel_format(self) -> str:
+        pass
+
 PyCameraInfo = NewType("PyCameraInfo", dict)
 
 class PyCameleonCamera:
@@ -30,6 +55,9 @@ class PyCameleonCamera:
 
     # TODO Narrow the return type
     def receive(self, payload_rx: PyPayloadReceiver) -> Any:
+        pass
+
+    def receive_raw(self, payload_rx: PyPayloadReceiver) -> tuple[Any, PyImageInfo]:
         pass
 
     def __str__(self) -> str:
