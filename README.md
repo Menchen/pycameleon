@@ -21,6 +21,9 @@ This package is available in [PyPI](https://pypi.org/project/pycameleon).
 pip install pycameleon
 ```
 
+
+
+
 ### Build from source
 
 Build dependencies:
@@ -41,7 +44,7 @@ Then run the following to install the package into the current environment.
 maturin develop
 ```
 
-## Linux
+### Linux
 
 By default, many devices are only accessible to root and need udev rules for non root users to access.
 
@@ -63,7 +66,7 @@ If the framerate is low, you may need to increase usbfs_memory_mb limit. By defa
 echo 1000 > /sys/module/usbcore/parameters/usbfs_memory_mb
 ```
 
-## Windows
+### Windows
 
 For Windows, [driver supported by libusb](https://github.com/libusb/libusb/wiki/Windows#driver-installation) like `WinUSB` is required.
 
@@ -73,6 +76,66 @@ NOTE: Make sure to install a driver to a composite device not to its child devic
 To do this, you need to list all devices connected to the host computer with zadig like below.
 
 
-## MacOS
+### MacOS
 
 MacOS should have out of box support after installing the pip package, for building from source, the libusb package is available in homebrew.
+
+
+
+## Quick Usage
+
+
+```python
+
+import pycameleon
+
+
+# List all available cameras
+available_camera = pycameleon.enumerate_cameras()
+
+# Get the first U3V camera
+cam = available_camera[0]
+
+# Open the device in USB level
+cam.open()
+
+# Load the GenApi context and return it as XML string
+gen_api_context = cam.load_context_from_camera()
+
+# As a alternative, you can load gen api context dumped previously as `.load_context_from_camera()` can fail if already streaming or in invalid state.
+# cam.load_context_from_xml(read_xml_to_string(str(cam)))
+
+
+# After loading the context, we can read/write nodes and execute commands.
+# Depending on the camera model, some nodes may not be available.
+# Check the dumped GenApi XML for available nodes.
+
+# Reset the device, need to enumerate it again and open from scratch after this.
+# cam.execute("DeviceReset")
+
+# Tell the camera to use Mono8 pixel format
+cam.write_enum_as_str("PixelFormat", "Mono8")
+
+# Start streaming and prepare a payload buffer for 1 channel.
+payload = cam.start_streaming(1)
+
+# Receive a single image from camera.
+img, info = cam.receive_raw(payload)
+
+# `img`` is an numpy array with type uint8, it's the raw byte array received from camera.
+
+# `info` contain image information such as width, height and pixel format.
+
+
+# At the end, close the camera to release USB handler.
+cam.close()
+
+
+
+
+
+
+
+```
+
+
