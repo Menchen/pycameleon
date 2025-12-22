@@ -56,7 +56,7 @@ Choose and change vendor and product id with your own.
 ```
 # Example: USB with vendor Id 2676 and product id 5678
 SUBSYSTEM=="usb", ATTRS{idVendor}=="2676", ATTR{idProduct}=="5678", MODE:="0666", TAG+="uaccess", TAG+="udev-acl"
-# Example: USB with vendor Id 2676 with any product id
+# Example: USB with vendor Id 1234 with any product id
 SUBSYSTEM=="usb", ATTRS{idVendor}=="1234", MODE:="0666", TAG+="uaccess", TAG+="udev-acl"
 ```
 
