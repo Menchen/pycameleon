@@ -85,6 +85,10 @@ MacOS should have out of box support after installing the pip package, for build
 ## Quick Usage
 
 
+See [example repository](https://github.com/Menchen/pycameleon-gui) that contain code snippet for generic Mono8/Mono12 camera and SILIOS Toucan multispectral camera.
+
+Or quick cheatsheet below.
+
 ```python
 
 import pycameleon
