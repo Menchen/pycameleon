@@ -2,10 +2,10 @@
 
 [![CI](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml/badge.svg)](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml) [![PyPI](https://img.shields.io/pypi/v/pycameleon)](https://pypi.org/project/pycameleon/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pycameleon)](https://pypi.org/project/pycameleon/) [![PyPI](https://img.shields.io/pypi/v/pycameleon)](https://pypi.org/project/pycameleon/) [![Python](https://img.shields.io/pypi/pyversions/pycameleon)](https://pypi.org/project/pycameleon/)
 
-A python binding for [cameleon](https://github.com/cameleon-rs/cameleon), a rust crate to interact with U3V (USB 3 Vision) camera that implement GenICam.
+A python binding for [cameleon](https://github.com/cameleon-rs/cameleon), a rust crate to interact with GenICam compatible U3V (USB3 Vision) camera.
 
-⚠️ **Work in Progress**  
-This project is currently under active development. Features are being added, and APIs may change as we improve the design.  
+
+![Example demo using Rerun viewer and SILIOS Toucan camera](./example_image/rerun_demo_tree.png)
 
 We welcome **new contributors**! If you want to help, here’s how you can get involved:
 
@@ -20,7 +20,6 @@ This package is available in [PyPI](https://pypi.org/project/pycameleon).
 ```bash
 pip install pycameleon
 ```
-
 
 
 
@@ -73,7 +72,7 @@ For Windows, [driver supported by libusb](https://github.com/libusb/libusb/wiki/
 In most case, [Zadig](http://zadig.akeo.ie/) is recommended as an Automated Driver Installer GUI application.
 
 NOTE: Make sure to install a driver to a composite device not to its child devices.
-To do this, you need to list all devices connected to the host computer with zadig like below.
+To do this, you need to list all devices connected to the host computer with Zadig like below.
 
 
 ### MacOS
