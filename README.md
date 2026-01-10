@@ -7,7 +7,7 @@ A python binding for [cameleon](https://github.com/cameleon-rs/cameleon), a rust
 
 ![Example demo using Rerun viewer and SILIOS Toucan camera](./example_image/rerun_demo_tree.png)
 
-We welcome **new contributors**! If you want to help, here’s how you can get involved:
+We welcome **new contributors**!
 
 Your contributions, whether code, documentation, or ideas are highly appreciated!
 
