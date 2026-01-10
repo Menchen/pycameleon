@@ -132,13 +132,6 @@ img, info = cam.receive_raw(payload)
 
 # At the end, close the camera to release USB handler.
 cam.close()
-
-
-
-
-
-
-
 ```
 
 
