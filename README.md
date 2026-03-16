@@ -1,6 +1,6 @@
 # Pycameleon
 
-[![CI](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml/badge.svg)](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml) [![PyPI](https://img.shields.io/pypi/v/pycameleon)](https://pypi.org/project/pycameleon/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pycameleon)](https://pypi.org/project/pycameleon/) [![PyPI](https://img.shields.io/pypi/v/pycameleon)](https://pypi.org/project/pycameleon/) [![Python](https://img.shields.io/pypi/pyversions/pycameleon)](https://pypi.org/project/pycameleon/)
+[![CI](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml/badge.svg)](https://github.com/Menchen/pycameleon/actions/workflows/maturin.yml) [![PyPI](https://img.shields.io/pypi/v/pycameleon)](https://pypi.org/project/pycameleon/) [![PyPI Downloads](https://img.shields.io/pypi/dm/pycameleon)](https://pypi.org/project/pycameleon/) 
 
 A python binding for [cameleon](https://github.com/cameleon-rs/cameleon), a rust crate to interact with GenICam compatible U3V (USB3 Vision) camera.
 
