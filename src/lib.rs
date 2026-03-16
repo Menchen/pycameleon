@@ -109,12 +109,11 @@ where
     Err(PyValueError::new_err(format!("Node {} is not readable", node_name)).into())
 }
 
-fn write_node<T, DownCastNode, DownCastFn, IsReadableFn, SetterFn>(
+fn write_node<T, DownCastNode, DownCastFn, SetterFn>(
     camera: &mut PyCameleonCamera,
     node_name: &str,
     value: T,
     downcast: DownCastFn,
-    readable: IsReadableFn,
     setter: SetterFn,
 ) -> PycameleonResult<()>
 where
@@ -122,10 +121,6 @@ where
         &'a Node,
         &'a ParamsCtxt<&'a mut ControlHandle, &'a mut DefaultGenApiCtxt>,
     ) -> Option<DownCastNode>,
-    IsReadableFn: Fn(
-        &DownCastNode,
-        &mut ParamsCtxt<&mut ControlHandle, &mut DefaultGenApiCtxt>,
-    ) -> Result<bool, GenApiError>,
     SetterFn: for<'a> Fn(
         &DownCastNode,
         &mut ParamsCtxt<&mut ControlHandle, &mut DefaultGenApiCtxt>,
@@ -145,12 +140,11 @@ where
     )));
     let node = node_option?;
     // let params_ctxt_mut = &mut params_ctxt;
-    let is_readable = readable(&node, &mut params_ctxt)?;
-    if is_readable {
-        setter(&node, &mut params_ctxt, value)?;
+    let set_result = setter(&node, &mut params_ctxt, value);
+    if set_result.is_ok() {
         return Ok(());
     }
-    Err(PyValueError::new_err(format!("Node {} is not readable", node_name)).into())
+    Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
 }
 
 macro_rules! impl_read_methods {
@@ -207,7 +201,6 @@ macro_rules! impl_write_methods {
                         node_name,
                         value,
                         |n, _ctxt| n.$as_fn(_ctxt),
-                        |n, _ctxt| n.is_readable(_ctxt),
                         impl_write_methods!(@setter $( $setter_closure )?)
                     )
                 }
