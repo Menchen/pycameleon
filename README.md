@@ -59,10 +59,16 @@ SUBSYSTEM=="usb", ATTRS{idVendor}=="2676", ATTR{idProduct}=="5678", MODE:="0666"
 SUBSYSTEM=="usb", ATTRS{idVendor}=="1234", MODE:="0666", TAG+="uaccess", TAG+="udev-acl"
 ```
 
-If the framerate is low, you may need to increase usbfs_memory_mb limit. By default, USB-FS on Linux systems only allows 16 MB of buffer memory for all USB devices. This is quite low for high-resolution image streaming. We recommend you to set the value to 1000MB. You could set the value as following:
+If the framerate is low, you may need to increase usbfs_memory_mb limit. By default, USB-FS on Linux systems only allows 16 MB of buffer memory for all USB devices. This is quite low for high-resolution image streaming. We recommend you to set the value to 1024MB. You could set the value as following as root:
 
 ```bash
-echo 1000 > /sys/module/usbcore/parameters/usbfs_memory_mb
+echo 1024 > /sys/module/usbcore/parameters/usbfs_memory_mb
+```
+
+or using `sudo tee`
+
+```bash
+echo 1024 | sudo tee /sys/module/usbcore/parameters/usbfs_memory_mb
 ```
 
 ### Windows
