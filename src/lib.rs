@@ -1,4 +1,5 @@
 mod errors;
+use pyo3_async_runtimes::tokio::future_into_py;
 
 use cameleon::genapi::{DefaultGenApiCtxt, FromXml, GenApiError, Node, ParamsCtxt};
 use cameleon::payload::ImageInfo;
@@ -353,6 +354,35 @@ impl PyCameleonCamera {
         Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
     }
 
+    pub fn receive_async<'py>(
+        &mut self,
+        py: Python<'py>,
+        payload_rx: &mut PyPayloadReceiver,
+    ) -> PyResult<Bound<'py, PyAny>> {
+        let cloned_receiver = payload_rx.0.clone();
+        future_into_py(py, async move {
+            let result = cloned_receiver.recv().await;
+
+            Python::attach(|py| -> PyResult<Py<PyAny>> {
+                match result {
+                    Ok(payload) => match payload.image() {
+                        Some(img) => {
+                            let info = payload
+                                .image_info()
+                                .ok_or(PyValueError::new_err("Payload image empty"))?;
+                            let ndarray = PyArray::from_slice(py, img);
+                            ndarray.reshape([info.height, info.width])?;
+                            let reshaped = ndarray.into_py_any(py);
+                            Ok(reshaped?)
+                        }
+                        None => Ok(PyNone::get(py).into_py_any(py)?),
+                    },
+                    Err(e) => Err(pyo3::exceptions::PyIOError::new_err(e.to_string())),
+                }
+            })
+        })
+    }
+
     /// Receive an Mono8 image with blocking call, need an channel payload from `start_streaming`
     /// return an 2D numpy byte array with dimension returned by the camera
     pub fn receive(
@@ -362,9 +392,7 @@ impl PyCameleonCamera {
     ) -> PycameleonResult<Py<PyAny>> {
         let payload = match payload_rx.0.recv_blocking() {
             Ok(payload) => payload,
-            Err(_) => {
-                return Err(PyValueError::new_err("Failed to receive image").into());
-            }
+            Err(e) => return Err(pyo3::exceptions::PyIOError::new_err(e.to_string()).into()),
         };
 
         let result = match payload.image() {
