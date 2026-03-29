@@ -16,7 +16,9 @@ name = "pycameleon"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.27.1", features = ["abi3-py39", "extension-module", "multiple-pymethods"] }
+pyo3 = { version = "0.27.2", features = ["abi3-py39", "extension-module", "multiple-pymethods"] }
 cameleon = { version = "0.1.12", features = ["libusb"] }
 numpy = "0.27"
 thiserror = "2.0.17"
+tokio = { version = "1.50.0", features = ["rt", "rt-multi-thread", "macros"] }
+pyo3-async-runtimes = { version = "0.27", features = ["tokio-runtime"] }
