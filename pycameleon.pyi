@@ -1,4 +1,8 @@
 from typing import Any, NewType
+import numpy as np
+import numpy.typing as npt
+
+npuint8: npt.NDArray[np.uint8]
 
 # pyfunction
 def enumerate_cameras() -> list[PyCameleonCamera]:
@@ -53,11 +57,22 @@ class PyCameleonCamera:
     def is_command_done(self, node_name: str) -> bool:
         pass
 
-    # TODO Narrow the return type
-    def receive(self, payload_rx: PyPayloadReceiver) -> Any:
+    def receive(self, payload_rx: PyPayloadReceiver) -> npt.NDArray[np.uint8]:
         pass
 
-    def receive_raw(self, payload_rx: PyPayloadReceiver) -> tuple[Any, PyImageInfo]:
+    async def receive_async(
+        self, payload_rx: PyPayloadReceiver
+    ) -> npt.NDArray[np.uint8]:
+        pass
+
+    def receive_raw(
+        self, payload_rx: PyPayloadReceiver
+    ) -> tuple[npt.NDArray[np.uint8], PyImageInfo]:
+        pass
+
+    async def receive_raw_async(
+        self, payload_rx: PyPayloadReceiver
+    ) -> tuple[npt.NDArray[np.uint8], PyImageInfo]:
         pass
 
     def __str__(self) -> str:
