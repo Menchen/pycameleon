@@ -354,6 +354,7 @@ impl PyCameleonCamera {
         Err(PyValueError::new_err(format!("Node {} is not writable", node_name)).into())
     }
 
+    // Async version of receive
     pub fn receive_async<'py>(
         &mut self,
         py: Python<'py>,
@@ -387,6 +388,7 @@ impl PyCameleonCamera {
         })
     }
 
+    // Async version of recerive_raw
     pub fn receive_raw_async<'py>(
         &mut self,
         py: Python<'py>,
@@ -424,6 +426,7 @@ impl PyCameleonCamera {
 
     /// Receive an Mono8 image with blocking call, need an channel payload from `start_streaming`
     /// return an 2D numpy byte array with dimension returned by the camera
+    /// See `receive_async` for a better control with timeout to prevent locking
     pub fn receive(
         &mut self,
         py: Python,
